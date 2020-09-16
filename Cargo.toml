@@ -1,0 +1,10 @@
+[package]
+name = "mmio"
+version = "0.1.0"
+authors = ["Austin Kiekintveld <akiekintveld@icloud.com>"]
+edition = "2018"
+description = "Abstractions for performing memory-mapped I/O."
+repository = "https://github.com/akiekintveld/mmio"
+license = "MIT"
+keywords = ["mmio", "registers", "osdev", "embedded"]
+categories = ["hardware-support", "no-std", "embedded", "data-structures"]
