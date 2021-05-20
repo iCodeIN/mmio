@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2021-05-20
+### Changed
+- Volatile boxes can now be initialized in constant expressions.
+### Deprecated
+- Access trait and volatile box array initialization are deprecated.
+
 ## [1.0.0] - 2021-05-19
 ### Added
 - Volatile box abstraction.
