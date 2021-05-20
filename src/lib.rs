@@ -8,30 +8,29 @@
 //! offload safety reasoning to the borrow checker after [`VolBox::new`].
 //!
 //! Importantly, this crate is careful to [never create references to volatile
-//! memory locations][volatile], and [never perform pointer arithmetic across
-//! object boundaries][wrapping_add].
+//! memory locations][volatile].
 //!
 //! [volatile]: https://lokathor.github.io/volatile/
-//! [wrapping_add]: https://doc.rust-lang.org/std/primitive.pointer.html#method.wrapping_add
 //!
 //! # Examples
 //! ```no_run
 //! # use mmio::*;
-//! let mut uart = unsafe { VolBox::<u8, Allow, Allow>::array::<8>(0x1000_0000 as *mut u8) };
+//! let mut thr = unsafe { VolBox::<u8, Allow, Allow>::new(0x1000_0000 as *mut u8) };
+//! let lsr = unsafe { VolBox::<u8, Allow, Allow>::new(0x1000_0005 as *mut u8) };
 //! loop {
-//!     let lsr = uart[5].read();
-//!     if lsr & 0x20 != 0x0 {
+//!     if lsr.read() & 0x20 != 0x0 {
 //!         break;
 //!     }
 //! }
-//! uart[0].write(b'\n');
+//! thr.write(b'\n');
 //! ```
 
 #![no_std]
+#![allow(deprecated)]
 #![warn(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use core::{fmt, marker::PhantomData};
+use ::core::{fmt, marker::PhantomData};
 
 /// Allow access to a memory location.
 #[derive(Debug)]
@@ -46,6 +45,7 @@ pub enum Warn {}
 pub enum Deny {}
 
 /// Types which control when and how a memory location can be accessed.
+#[deprecated]
 pub trait Access {}
 
 impl Access for Allow {}
@@ -62,7 +62,7 @@ pub struct VolBox<T, R, W> {
     w: PhantomData<W>,
 }
 
-impl<T: Copy, R: Access, W: Access> VolBox<T, R, W> {
+impl<T, R, W> VolBox<T, R, W> {
     /// Acquire ownership of a memory location.
     ///
     /// If either `R` or `W` are [`Warn`], this volatile box should document
@@ -79,10 +79,7 @@ impl<T: Copy, R: Access, W: Access> VolBox<T, R, W> {
     /// - `loc` must be properly aligned.
     /// - `loc` must point to a properly initialized value of type `T` if `R`
     /// is not [`Deny`].
-    pub unsafe fn new(loc: *mut T) -> Self {
-        use ::core::{mem::align_of, ptr::null_mut};
-        debug_assert_ne!(loc, null_mut());
-        debug_assert_eq!((loc as usize) / align_of::<T>(), 0);
+    pub const unsafe fn new(loc: *mut T) -> Self {
         Self {
             loc,
             r: PhantomData,
@@ -96,25 +93,14 @@ impl<T: Copy, R: Access, W: Access> VolBox<T, R, W> {
     /// Behavior is undefined if calling [`Self::new`] on each pointer in the
     /// half-open range `[base_loc, base_loc + LEN)` would cause behavior to be
     /// undefined.
+    #[deprecated]
     pub unsafe fn array<const LEN: usize>(base_loc: *mut T) -> [Self; LEN] {
-        use ::{
-            array_macro::array,
-            core::{
-                mem::{align_of, size_of},
-                ptr::null_mut,
-            },
-        };
-        debug_assert_ne!(base_loc, null_mut());
-        let base_loc = base_loc as usize;
-        debug_assert_eq!(base_loc / align_of::<T>(), 0);
+        use ::array_macro::array;
 
-        array![i => Self {
-            // NOTE: We do not use `pointer::wrapping_add` or
-            // `pointer::add` because we cannot know if this arithmetic
-            // will cross an object boundary.
-            loc: (base_loc + i * size_of::<T>()) as *mut T,
-            r: PhantomData,
-            w: PhantomData,
+        array![i => {
+            // SAFETY: `Self::new` is safe to call on each pointer in the
+            // half-open range `[base_loc, base_loc + LEN)`.
+            unsafe { Self::new(base_loc.add(i)) }
         }; LEN]
     }
 
