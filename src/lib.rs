@@ -31,7 +31,7 @@
 #![warn(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use core::{fmt, marker::PhantomData, mem::MaybeUninit};
+use core::{fmt, marker::PhantomData};
 
 /// Allow access to a memory location.
 #[derive(Debug)]
@@ -97,31 +97,25 @@ impl<T: Copy, R: Access, W: Access> VolBox<T, R, W> {
     /// half-open range `[base_loc, base_loc + LEN)` would cause behavior to be
     /// undefined.
     pub unsafe fn array<const LEN: usize>(base_loc: *mut T) -> [Self; LEN] {
-        use ::core::{
-            mem::{align_of, size_of, transmute_copy},
-            ptr::null_mut,
+        use ::{
+            array_macro::array,
+            core::{
+                mem::{align_of, size_of},
+                ptr::null_mut,
+            },
         };
         debug_assert_ne!(base_loc, null_mut());
         let base_loc = base_loc as usize;
         debug_assert_eq!(base_loc / align_of::<T>(), 0);
 
-        // SAFETY: `assume_init` is safe because `MaybeUninit`s themselves do
-        // not require initialization.
-        let mut vbs: [MaybeUninit<_>; LEN] = unsafe { MaybeUninit::uninit().assume_init() };
-        for (i, vb) in vbs.iter_mut().enumerate() {
-            *vb = MaybeUninit::new(Self {
-                // NOTE: We do not use `pointer::wrapping_add` or
-                // `pointer::add` because we cannot know if this arithmetic
-                // will cross an object boundary.
-                loc: (base_loc + i * size_of::<T>()) as *mut T,
-                r: PhantomData,
-                w: PhantomData,
-            })
-        }
-        // SAFETY: `transmute_copy` is safe because all elements of the array
-        // are initialized and the source and destination arrays are the same
-        // size.
-        unsafe { transmute_copy(&vbs) }
+        array![i => Self {
+            // NOTE: We do not use `pointer::wrapping_add` or
+            // `pointer::add` because we cannot know if this arithmetic
+            // will cross an object boundary.
+            loc: (base_loc + i * size_of::<T>()) as *mut T,
+            r: PhantomData,
+            w: PhantomData,
+        }; LEN]
     }
 
     /// Release ownership of the memory location.
