@@ -10,4 +10,3 @@ keywords = ["mmio", "registers", "osdev", "embedded"]
 categories = ["hardware-support", "no-std", "embedded", "data-structures"]
 
 [dependencies]
-array-macro = "2.1.0"

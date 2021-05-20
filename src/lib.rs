@@ -44,14 +44,6 @@ pub enum Warn {}
 #[derive(Debug)]
 pub enum Deny {}
 
-/// Types which control when and how a memory location can be accessed.
-#[deprecated]
-pub trait Access {}
-
-impl Access for Allow {}
-impl Access for Warn {}
-impl Access for Deny {}
-
 /// An owned memory location for volatile reads and writes.
 #[repr(transparent)]
 #[derive(Debug)]
@@ -85,23 +77,6 @@ impl<T, R, W> VolBox<T, R, W> {
             r: PhantomData,
             w: PhantomData,
         }
-    }
-
-    /// Acquire ownership of a range of memory locations.
-    ///
-    /// # Safety
-    /// Behavior is undefined if calling [`Self::new`] on each pointer in the
-    /// half-open range `[base_loc, base_loc + LEN)` would cause behavior to be
-    /// undefined.
-    #[deprecated]
-    pub unsafe fn array<const LEN: usize>(base_loc: *mut T) -> [Self; LEN] {
-        use ::array_macro::array;
-
-        array![i => {
-            // SAFETY: `Self::new` is safe to call on each pointer in the
-            // half-open range `[base_loc, base_loc + LEN)`.
-            unsafe { Self::new(base_loc.add(i)) }
-        }; LEN]
     }
 
     /// Release ownership of the memory location.
