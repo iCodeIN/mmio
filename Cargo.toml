@@ -1,6 +1,6 @@
 [package]
 name = "mmio"
-version = "1.0.1"
+version = "2.0.0"
 authors = ["Austin Kiekintveld <akiekintveld@icloud.com>"]
 edition = "2018"
 description = "Abstractions for performing memory-mapped I/O."
