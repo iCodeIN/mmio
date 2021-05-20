@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-05-19
+### Added
+- Volatile box abstraction.
+### Removed
+- Register traits and volatile cell abstraction.
+
 ## [0.1.0] - 2020-09-24
 ### Changed
 - Register trait's volatile cell access API.
@@ -17,5 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trait for MMIO registers implemented with volatile cells.
 - Traits for typesafe register reads and writes.
 
+[1.0.0]: https://github.com/akiekintveld/mmio/releases/tag/1.0.0
 [0.1.0]: https://github.com/akiekintveld/mmio/releases/tag/0.1.0
 [0.0.0]: https://github.com/akiekintveld/mmio/releases/tag/0.0.0
