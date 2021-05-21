@@ -6,7 +6,7 @@ edition = "2018"
 description = "Abstractions for performing memory-mapped I/O."
 repository = "https://github.com/akiekintveld/mmio"
 license = "MIT"
-keywords = ["mmio", "registers", "osdev", "embedded"]
+keywords = ["mmio", "volatile", "registers", "osdev", "embedded"]
 categories = ["hardware-support", "no-std", "embedded", "data-structures"]
 
 [dependencies]
