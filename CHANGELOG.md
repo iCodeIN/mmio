@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2021-05-21
+### Changed
+- Added "volatile" keyword to package manifest.
+
 ## [2.0.0] - 2021-05-20
 ### Removed
 - Access trait and volatile box array initialization are removed.
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trait for MMIO registers implemented with volatile cells.
 - Traits for typesafe register reads and writes.
 
+[2.0.1]: https://github.com/akiekintveld/mmio/releases/tag/2.0.1
 [2.0.0]: https://github.com/akiekintveld/mmio/releases/tag/2.0.0
 [1.0.1]: https://github.com/akiekintveld/mmio/releases/tag/1.0.1
 [1.0.0]: https://github.com/akiekintveld/mmio/releases/tag/1.0.0
