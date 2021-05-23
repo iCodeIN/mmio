@@ -15,8 +15,12 @@
 //! # Examples
 //! ```no_run
 //! # use mmio::*;
-//! let mut thr = unsafe { VolBox::<u8, Allow, Allow>::new(0x1000_0000 as *mut u8) };
-//! let lsr = unsafe { VolBox::<u8, Allow, Allow>::new(0x1000_0005 as *mut u8) };
+//! let mut thr = unsafe {
+//!     VolBox::<u8, Allow, Allow>::new(0x1000_0000 as *mut u8)
+//! };
+//! let lsr = unsafe {
+//!     VolBox::<u8, Allow, Allow>::new(0x1000_0005 as *mut u8)
+//! };
 //! loop {
 //!     if lsr.read() & 0x20 != 0x0 {
 //!         break;
@@ -58,8 +62,8 @@ impl<T, R, W> VolBox<T, R, W> {
     /// Acquire ownership of a memory location.
     ///
     /// If either `R` or `W` are [`Warn`], this volatile box should document
-    /// the additional safety requirements for [`Self::read`] and
-    /// [`Self::write`] respectively.
+    /// the additional safety requirements for [`Self::read`]/[`Self::read_at`]
+    /// and [`Self::write`]/[`Self::write_at`] respectively.
     ///
     /// # Safety
     /// Behavior is undefined if any of the following conditions are violated
@@ -116,8 +120,8 @@ impl<T: Copy, R> VolBox<T, R, Warn> {
     /// # Safety
     /// Please consult the documentation on `self`.
     pub unsafe fn write(&mut self, t: T) {
-        // SAFETY: `write_volatile` is safe because the memory location is owned,
-        // valid for writes, properly aligned, and `T` is `Copy`.
+        // SAFETY: `write_volatile` is safe because the memory location is
+        // owned, valid for writes, properly aligned, and `T` is `Copy`.
         unsafe { self.loc.write_volatile(t) };
     }
 }
@@ -125,9 +129,91 @@ impl<T: Copy, R> VolBox<T, R, Warn> {
 impl<T: Copy, R> VolBox<T, R, Allow> {
     /// Performs a volatile write on the owned memory location.
     pub fn write(&mut self, t: T) {
-        // SAFETY: `write_volatile` is safe because the memory location is owned,
-        // valid for writes, properly aligned, and `T` is `Copy`.
+        // SAFETY: `write_volatile` is safe because the memory location is
+        // owned, valid for writes, properly aligned, and `T` is `Copy`.
         unsafe { self.loc.write_volatile(t) };
+    }
+}
+
+impl<T: Copy, W, const N: usize> VolBox<[T; N], Warn, W> {
+    /// Performs a volatile read on the owned memory location at a specific
+    /// index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    ///
+    /// # Safety
+    /// Please consult the documentation on `self`.
+    #[must_use]
+    pub unsafe fn read_at(&self, i: usize) -> T {
+        assert!(i < N);
+        let loc = self.loc as *mut T;
+        // SAFETY: `add` is safe because the index is within bounds of the
+        // array.
+        let loc = unsafe { loc.add(i) };
+        // SAFETY: `read_volatile` is safe because the memory location is
+        // owned, valid for reads, properly aligned, points to a properly
+        // initialized value of type `T`, and `T` is `Copy`.
+        unsafe { loc.read_volatile() }
+    }
+}
+
+impl<T: Copy, W, const N: usize> VolBox<[T; N], Allow, W> {
+    /// Performs a volatile read on the owned memory location at a specific
+    /// index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    #[must_use]
+    pub fn read_at(&self, i: usize) -> T {
+        assert!(i < N);
+        let loc = self.loc as *mut T;
+        // SAFETY: `add` is safe because the index is within bounds of the
+        // array.
+        let loc = unsafe { loc.add(i) };
+        // SAFETY: `read_volatile` is safe because the memory location is
+        // owned, valid for reads, properly aligned, points to a properly
+        // initialized value of type `T`, and `T` is `Copy`.
+        unsafe { loc.read_volatile() }
+    }
+}
+
+impl<T: Copy, R, const N: usize> VolBox<[T; N], R, Warn> {
+    /// Performs a volatile write on the owned memory location at a specific
+    /// index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    ///
+    /// # Safety
+    /// Please consult the documentation on `self`.
+    pub unsafe fn write_at(&mut self, i: usize, t: T) {
+        assert!(i < N);
+        let loc = self.loc as *mut T;
+        // SAFETY: `add` is safe because the index is within bounds of the
+        // array.
+        let loc = unsafe { loc.add(i) };
+        // SAFETY: `write_volatile` is safe because the memory location is
+        // owned, valid for writes, properly aligned, and `T` is `Copy`.
+        unsafe { loc.write_volatile(t) };
+    }
+}
+
+impl<T: Copy, R, const N: usize> VolBox<[T; N], R, Allow> {
+    /// Performs a volatile write on the owned memory location at a specific
+    /// index.
+    ///
+    /// # Safety
+    /// Please consult the documentation on `self`.
+    pub fn write_at(&mut self, i: usize, t: T) {
+        assert!(i < N);
+        let loc = self.loc as *mut T;
+        // SAFETY: `add` is safe because the index is within bounds of the
+        // array.
+        let loc = unsafe { loc.add(i) };
+        // SAFETY: `write_volatile` is safe because the memory location is
+        // owned, valid for writes, properly aligned, and `T` is `Copy`.
+        unsafe { loc.write_volatile(t) };
     }
 }
 
